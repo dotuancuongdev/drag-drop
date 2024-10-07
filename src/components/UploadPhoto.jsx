@@ -1,6 +1,12 @@
 import React, { useState, useRef } from "react";
+import { fileTypes } from "../App";
 
-const UploadPhoto = ({ multiple, onSelectedImages, name, types }) => {
+const UploadPhoto = ({
+  multiple = false,
+  onSelectedImages,
+  name,
+  types = fileTypes,
+}) => {
   const [files, setFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef(null);
@@ -15,6 +21,22 @@ const UploadPhoto = ({ multiple, onSelectedImages, name, types }) => {
     }
   };
 
+  const validateSize = (files) => {
+    return files.every((f) => f.size < 5 * 1024 * 1024);
+  };
+
+  const validateExtension = (files) => {
+    const exts = files.map((file, idx) =>
+      file.name.split(".")[1].toUpperCase()
+    );
+    return exts.every((ext) => types.includes(ext.toUpperCase()));
+  };
+
+  const handleSubmit = (files) => {
+    setFiles(files);
+    onSelectedImages?.(files);
+  };
+
   // triggers when file is dropped
   const handleDrop = function (e) {
     e.preventDefault();
@@ -22,25 +44,20 @@ const UploadPhoto = ({ multiple, onSelectedImages, name, types }) => {
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const filesWithoutSize = Array.from(e.dataTransfer.files);
-      const checkSizeFile = filesWithoutSize.every(
-        (file) => file.size < 5 * 1024 * 1024
-      );
 
-      const extFiles = filesWithoutSize.map((file, idx) =>
-        file.name.split(".")[1].toUpperCase()
-      );
-      const validExtention = extFiles.every((ext) => types.includes(ext));
-      if (!validExtention) {
+      const validSize = validateSize(filesWithoutSize);
+      if (!validSize) {
+        alert("maximum size of drop-file is 5mb");
+        return;
+      }
+
+      const validExtension = validateExtension(filesWithoutSize);
+      if (!validExtension) {
         alert(`Extention of your files is not "JPG", "PNG", "GIF"`);
         return;
       }
 
-      if (checkSizeFile) {
-        setFiles(filesWithoutSize);
-        onSelectedImages?.(filesWithoutSize);
-        return;
-      }
-      alert("maximum size of drop-file is 5mb");
+      handleSubmit(filesWithoutSize);
     }
   };
 
@@ -50,26 +67,19 @@ const UploadPhoto = ({ multiple, onSelectedImages, name, types }) => {
     if (e.target.files && e.target.files[0]) {
       const filesWithoutSize = Array.from(e.target.files);
 
-      const checkSizeFile = filesWithoutSize.every(
-        (file) => file.size < 5 * 1024 * 1024
-      );
+      const validSize = validateSize(filesWithoutSize);
+      if (!validSize) {
+        alert("maximum size of drop-file is 5mb");
+        return;
+      }
 
-      const extFiles = filesWithoutSize.map((file, idx) =>
-        file.name.split(".")[1].toUpperCase()
-      );
-      const validExtention = extFiles.every((ext) => types.includes(ext));
-      if (!validExtention) {
+      const validExtension = validateExtension(filesWithoutSize);
+      if (!validExtension) {
         alert(`Extention of your files is not "JPG", "PNG", "GIF"`);
         return;
       }
 
-      // console.log(extFiles);
-      if (checkSizeFile) {
-        setFiles(filesWithoutSize);
-        onSelectedImages?.(filesWithoutSize);
-        return;
-      }
-      alert("maximum size of file is 5mb");
+      handleSubmit(filesWithoutSize);
     }
   };
 
@@ -89,7 +99,7 @@ const UploadPhoto = ({ multiple, onSelectedImages, name, types }) => {
             ref={inputRef}
             type="file"
             id="input-file-upload"
-            multiple={!!multiple}
+            multiple={multiple}
             onChange={handleChange}
             name={name}
           />

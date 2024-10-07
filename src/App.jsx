@@ -5,11 +5,11 @@ import "./App.css";
 
 import UploadPhoto from "./components/UploadPhoto";
 
-const fileTypes = ["JPG", "PNG", "GIF"];
+export const fileTypes = ["JPG", "PNG", "GIF"];
 
 function App() {
   const handleChange = (file) => {
-    console.log(file);
+    // console.log(file);
   };
 
   return (
